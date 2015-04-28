@@ -64,11 +64,11 @@
 
 - (BOOL) isSystemUrl:(NSURL*)url
 {
-	if ([[url host] isEqualToString:@"itunes.apple.com"]) {
-		return YES;
-	}
+    if ([[url host] isEqualToString:@"itunes.apple.com"]) {
+        return YES;
+    }
 
-	return NO;
+    return NO;
 }
 
 - (void)open:(CDVInvokedUrlCommand*)command
@@ -148,9 +148,9 @@
 
     [self.inAppBrowserViewController showLocationBar:browserOptions.location];
     [self.inAppBrowserViewController showToolBar:browserOptions.toolbar :browserOptions.toolbarposition];
-    if (browserOptions.closebuttoncaption != nil) {
-        [self.inAppBrowserViewController setCloseButtonTitle:browserOptions.closebuttoncaption];
-    }
+    // if (browserOptions.closebuttoncaption != nil) {
+    //     [self.inAppBrowserViewController setCloseButtonTitle:browserOptions.closebuttoncaption];
+    // }
     // Set Presentation Style
     UIModalPresentationStyle presentationStyle = UIModalPresentationFullScreen; // default
     if (browserOptions.presentationstyle != nil) {
@@ -517,8 +517,13 @@
     self.spinner.userInteractionEnabled = NO;
     [self.spinner stopAnimating];
 
-    self.closeButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
+    NSString* closeString = NSLocalizedString(@"×", nil); // create arrow from Unicode char
+    self.closeButton = [[UIBarButtonItem alloc] initWithTitle:closeString style:UIBarButtonItemStylePlain target:self action:@selector(close)];
     self.closeButton.enabled = YES;
+    self.closeButton.imageInsets = UIEdgeInsetsZero;
+    
+//    self.closeButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
+//    self.closeButton.enabled = YES;
 
     UIBarButtonItem* flexibleSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
 
@@ -573,17 +578,24 @@
     self.addressLabel.textColor = [UIColor colorWithWhite:1.000 alpha:1.000];
     self.addressLabel.userInteractionEnabled = NO;
 
-    NSString* frontArrowString = NSLocalizedString(@"►", nil); // create arrow from Unicode char
+    NSString* frontArrowString = NSLocalizedString(@"▸", nil); // create arrow from Unicode char
     self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
     self.forwardButton.enabled = YES;
     self.forwardButton.imageInsets = UIEdgeInsetsZero;
 
-    NSString* backArrowString = NSLocalizedString(@"◄", nil); // create arrow from Unicode char
+    NSString* backArrowString = NSLocalizedString(@"◂", nil); // create arrow from Unicode char
     self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
     self.backButton.enabled = YES;
     self.backButton.imageInsets = UIEdgeInsetsZero;
+    
+    NSUInteger size = 32;
+    UIFont * font = [UIFont boldSystemFontOfSize:size];
+    NSDictionary * attributes = @{NSFontAttributeName: font};
+    [self.closeButton setTitleTextAttributes:attributes forState:UIControlStateNormal];
+    [self.forwardButton setTitleTextAttributes:attributes forState:UIControlStateNormal];
+    [self.backButton setTitleTextAttributes:attributes forState:UIControlStateNormal];
 
-    [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton]];
+    [self.toolbar setItems:@[self.backButton, fixedSpaceButton, self.forwardButton, flexibleSpaceButton, self.closeButton ]];
 
     self.view.backgroundColor = [UIColor grayColor];
     [self.view addSubview:self.toolbar];
