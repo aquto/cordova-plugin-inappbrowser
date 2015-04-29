@@ -148,9 +148,9 @@
 
     [self.inAppBrowserViewController showLocationBar:browserOptions.location];
     [self.inAppBrowserViewController showToolBar:browserOptions.toolbar :browserOptions.toolbarposition];
-    // if (browserOptions.closebuttoncaption != nil) {
-    //     [self.inAppBrowserViewController setCloseButtonTitle:browserOptions.closebuttoncaption];
-    // }
+     if (browserOptions.caption != nil) {
+         [self.inAppBrowserViewController setCaption:browserOptions.caption];
+     }
     // Set Presentation Style
     UIModalPresentationStyle presentationStyle = UIModalPresentationFullScreen; // default
     if (browserOptions.presentationstyle != nil) {
@@ -517,7 +517,8 @@
     self.spinner.userInteractionEnabled = NO;
     [self.spinner stopAnimating];
 
-    NSString* closeString = NSLocalizedString(@"×", nil); // create arrow from Unicode char
+//    NSString* closeString = NSLocalizedString(@"×", nil); // create arrow from Unicode char
+    NSString* closeString = NSLocalizedString(@"x", nil); // create arrow from Unicode char
     self.closeButton = [[UIBarButtonItem alloc] initWithTitle:closeString style:UIBarButtonItemStylePlain target:self action:@selector(close)];
     self.closeButton.enabled = YES;
     self.closeButton.imageInsets = UIEdgeInsetsZero;
@@ -528,7 +529,10 @@
     UIBarButtonItem* flexibleSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
 
     UIBarButtonItem* fixedSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
-    fixedSpaceButton.width = 20;
+    fixedSpaceButton.width = 10;
+    
+    UIBarButtonItem* fixedSpaceButton32 = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
+    fixedSpaceButton32.width = 20;
 
     float toolbarY = toolbarIsAtBottom ? self.view.bounds.size.height - TOOLBAR_HEIGHT : 0.0;
     CGRect toolbarFrame = CGRectMake(0.0, toolbarY, self.view.bounds.size.width, TOOLBAR_HEIGHT);
@@ -588,14 +592,21 @@
     self.backButton.enabled = YES;
     self.backButton.imageInsets = UIEdgeInsetsZero;
     
-    NSUInteger size = 32;
+    NSUInteger size = 25;
     UIFont * font = [UIFont boldSystemFontOfSize:size];
     NSDictionary * attributes = @{NSFontAttributeName: font};
     [self.closeButton setTitleTextAttributes:attributes forState:UIControlStateNormal];
+    self.closeButton.tintColor = [UIColor whiteColor];
     [self.forwardButton setTitleTextAttributes:attributes forState:UIControlStateNormal];
+    self.forwardButton.tintColor = [UIColor whiteColor];
     [self.backButton setTitleTextAttributes:attributes forState:UIControlStateNormal];
+    self.backButton.tintColor = [UIColor whiteColor];
+    
+    NSString* barTextString = NSLocalizedString(@"", nil);
+    self.barText = [[UIBarButtonItem alloc] initWithTitle:barTextString style:UIBarButtonItemStylePlain target:self action: nil];
+    self.barText.enabled = NO;
 
-    [self.toolbar setItems:@[self.backButton, fixedSpaceButton, self.forwardButton, flexibleSpaceButton, self.closeButton ]];
+    [self.toolbar setItems:@[self.backButton, fixedSpaceButton, self.forwardButton, flexibleSpaceButton, self.barText, flexibleSpaceButton, fixedSpaceButton32, fixedSpaceButton, self.closeButton ]];
 
     self.view.backgroundColor = [UIColor grayColor];
     [self.view addSubview:self.toolbar];
@@ -619,6 +630,20 @@
 
     NSMutableArray* items = [self.toolbar.items mutableCopy];
     [items replaceObjectAtIndex:0 withObject:self.closeButton];
+    [self.toolbar setItems:items];
+}
+
+- (void)setCaption:(NSString*)title
+{
+    // the advantage of using UIBarButtonSystemItemDone is the system will localize it for you automatically
+    // but, if you want to set this yourself, knock yourself out (we can't set the title for a system Done button, so we have to create a new one)
+    self.barText = nil;
+    self.barText = [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStylePlain target:self action: nil];
+    self.barText.enabled = YES;
+    self.barText.tintColor = [UIColor whiteColor];
+    
+    NSMutableArray* items = [self.toolbar.items mutableCopy];
+    [items replaceObjectAtIndex:4 withObject:self.barText];
     [self.toolbar setItems:items];
 }
 

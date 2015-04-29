@@ -45,6 +45,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -83,10 +84,11 @@ public class InAppBrowser extends CordovaPlugin {
     private static final String CLEAR_ALL_CACHE = "clearcache";
     private static final String CLEAR_SESSION_CACHE = "clearsessioncache";
     private static final String HARDWARE_BACK_BUTTON = "hardwareback";
+    private static final String CAPTION = "caption";
 
     private InAppBrowserDialog dialog;
     private WebView inAppWebView;
-    private EditText edittext;
+    private TextView edittext;
     private CallbackContext callbackContext;
     private boolean showLocationBar = true;
     private boolean showZoomControls = true;
@@ -94,6 +96,7 @@ public class InAppBrowser extends CordovaPlugin {
     private boolean clearAllCache= false;
     private boolean clearSessionCache=false;
     private boolean hadwareBackButton=true;
+    private String caption = "";
 
     /**
      * Executes the request and returns PluginResult.
@@ -112,7 +115,7 @@ public class InAppBrowser extends CordovaPlugin {
                 t = SELF;
             }
             final String target = t;
-            final HashMap<String, Boolean> features = parseFeature(args.optString(2));
+            final HashMap<String, String> features = parseFeature(args.optString(2));
             
             Log.d(LOG_TAG, "target = " + target);
             
@@ -310,19 +313,19 @@ public class InAppBrowser extends CordovaPlugin {
      * @param optString
      * @return
      */
-    private HashMap<String, Boolean> parseFeature(String optString) {
+    private HashMap<String, String> parseFeature(String optString) {
         if (optString.equals(NULL)) {
             return null;
         } else {
-            HashMap<String, Boolean> map = new HashMap<String, Boolean>();
+            HashMap<String, String> map = new HashMap<String, String>();
             StringTokenizer features = new StringTokenizer(optString, ",");
             StringTokenizer option;
             while(features.hasMoreElements()) {
                 option = new StringTokenizer(features.nextToken(), "=");
                 if (option.hasMoreElements()) {
                     String key = option.nextToken();
-                    Boolean value = option.nextToken().equals("no") ? Boolean.FALSE : Boolean.TRUE;
-                    map.put(key, value);
+                    // Boolean value = option.nextToken().equals("no") ? Boolean.FALSE : Boolean.TRUE;
+                    map.put(key, option.nextToken());
                 }
             }
             return map;
@@ -420,6 +423,14 @@ public class InAppBrowser extends CordovaPlugin {
     }
 
     /**
+     * Has the user set the hardware back button to go back
+     * @return boolean
+     */
+    public String getCaption() {
+        return caption;
+    }
+
+    /**
      * Checks to see if it is possible to go forward one page in history, then does so.
      */
     private void goForward() {
@@ -474,35 +485,39 @@ public class InAppBrowser extends CordovaPlugin {
      * @param url           The url to load.
      * @param jsonObject
      */
-    public String showWebPage(final String url, HashMap<String, Boolean> features) {
+    public String showWebPage(final String url, HashMap<String, String> features) {
         // Determine if we should hide the location bar.
         showLocationBar = true;
         showZoomControls = true;
         openWindowHidden = false;
         if (features != null) {
-            Boolean show = features.get(LOCATION);
+            String show = features.get(LOCATION);
             if (show != null) {
-                showLocationBar = show.booleanValue();
+                showLocationBar = Boolean.parseBoolean(show);
             }
-            Boolean zoom = features.get(ZOOM);
+            String zoom = features.get(ZOOM);
             if (zoom != null) {
-                showZoomControls = zoom.booleanValue();
+                showZoomControls = Boolean.parseBoolean(zoom);
             }            
-            Boolean hidden = features.get(HIDDEN);
+            String hidden = features.get(HIDDEN);
             if (hidden != null) {
-                openWindowHidden = hidden.booleanValue();
+                openWindowHidden = Boolean.parseBoolean(hidden);
             }
-            Boolean hardwareBack = features.get(HARDWARE_BACK_BUTTON);
+            String hardwareBack = features.get(HARDWARE_BACK_BUTTON);
             if (hardwareBack != null) {
-                hadwareBackButton = hardwareBack.booleanValue();
+                hadwareBackButton = Boolean.parseBoolean(hardwareBack);
             }
-            Boolean cache = features.get(CLEAR_ALL_CACHE);
+            String tempCaption = features.get(CAPTION);
+            if (tempCaption != null) {
+                caption = tempCaption;
+            }
+            String cache = features.get(CLEAR_ALL_CACHE);
             if (cache != null) {
-                clearAllCache = cache.booleanValue();
+                clearAllCache = Boolean.parseBoolean(cache);
             } else {
                 cache = features.get(CLEAR_SESSION_CACHE);
                 if (cache != null) {
-                    clearSessionCache = cache.booleanValue();
+                    clearSessionCache = Boolean.parseBoolean(cache);
                 }
             }
         }
@@ -602,27 +617,54 @@ public class InAppBrowser extends CordovaPlugin {
                 });
 
                 // Edit Text Box
-                edittext = new EditText(cordova.getActivity());
+                // edittext = new EditText(cordova.getActivity());
+                // RelativeLayout.LayoutParams textLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+                // textLayoutParams.addRule(RelativeLayout.RIGHT_OF, 1);
+                // textLayoutParams.addRule(RelativeLayout.LEFT_OF, 5);
+                // edittext.setLayoutParams(textLayoutParams);
+                // edittext.setId(4);
+                // edittext.setSingleLine(true);
+                // edittext.setText(url);
+                // edittext.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
+                // edittext.setImeOptions(EditorInfo.IME_ACTION_GO);
+                // edittext.setInputType(InputType.TYPE_NULL); // Will not except input... Makes the text NON-EDITABLE
+                // edittext.setOnKeyListener(new View.OnKeyListener() {
+                //     public boolean onKey(View v, int keyCode, KeyEvent event) {
+                //         // If the event is a key-down event on the "enter" button
+                //         if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                //           navigate(edittext.getText().toString());
+                //           return true;
+                //         }
+                //         return false;
+                //     }
+                // });
+
+                edittext = new TextView(cordova.getActivity());
                 RelativeLayout.LayoutParams textLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
                 textLayoutParams.addRule(RelativeLayout.RIGHT_OF, 1);
                 textLayoutParams.addRule(RelativeLayout.LEFT_OF, 5);
+                textLayoutParams.setMargins(0, 0, 50, 0);
                 edittext.setLayoutParams(textLayoutParams);
+                edittext.setGravity(Gravity.CENTER);
+                edittext.setTextColor(android.graphics.Color.BLACK);
+                edittext.setTextSize(18); 
                 edittext.setId(4);
                 edittext.setSingleLine(true);
-                edittext.setText(url);
-                edittext.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
-                edittext.setImeOptions(EditorInfo.IME_ACTION_GO);
+                edittext.setText(getCaption());
+                // edittext.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
+                // edittext.setImeOptions(EditorInfo.IME_ACTION_GO);
                 edittext.setInputType(InputType.TYPE_NULL); // Will not except input... Makes the text NON-EDITABLE
-                edittext.setOnKeyListener(new View.OnKeyListener() {
-                    public boolean onKey(View v, int keyCode, KeyEvent event) {
-                        // If the event is a key-down event on the "enter" button
-                        if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                          navigate(edittext.getText().toString());
-                          return true;
-                        }
-                        return false;
-                    }
-                });
+                // edittext.setOnKeyListener(new View.OnKeyListener() {
+                //     public boolean onKey(View v, int keyCode, KeyEvent event) {
+                //         // If the event is a key-down event on the "enter" button
+                //         if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                //           navigate(edittext.getText().toString());
+                //           return true;
+                //         }
+                //         return false;
+                //     }
+                // });
+
 
                 // Close/Done button
                 Button close = new Button(cordova.getActivity());
@@ -689,9 +731,9 @@ public class InAppBrowser extends CordovaPlugin {
                 // Add the views to our toolbar
                 toolbar.addView(actionButtonContainer);
                 // Don't add the location if its been disabled
-                if (getShowLocationBar()) {
+                // if (getShowLocationBar()) {
                     toolbar.addView(edittext);
-                }
+                // }
                 
                 toolbar.addView(close);
 
@@ -751,7 +793,7 @@ public class InAppBrowser extends CordovaPlugin {
      * The webview client receives notifications about appView
      */
     public class InAppBrowserClient extends WebViewClient {
-        EditText edittext;
+        TextView edittext;
         CordovaWebView webView;
 
         /**
@@ -760,7 +802,7 @@ public class InAppBrowser extends CordovaPlugin {
          * @param mContext
          * @param edittext
          */
-        public InAppBrowserClient(CordovaWebView webView, EditText mEditText) {
+        public InAppBrowserClient(CordovaWebView webView, TextView mEditText) {
             this.webView = webView;
             this.edittext = mEditText;
         }
@@ -833,9 +875,9 @@ public class InAppBrowser extends CordovaPlugin {
                 newloc = "http://" + url;
             }
 
-            if (!newloc.equals(edittext.getText().toString())) {
-                edittext.setText(newloc);
-            }
+            // if (!newloc.equals(edittext.getText().toString())) {
+            //     edittext.setText(newloc);
+            // }
 
             try {
                 JSONObject obj = new JSONObject();
